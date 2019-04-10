@@ -135,7 +135,7 @@ where
     }
 
     #[inline]
-    fn app_debug_asserts(&mut self) -> bool {
+    fn app_debug_asserts(&self) -> bool {
         assert!(self.verify_positionals());
         let should_err = self.groups.iter().all(|g| {
             g.args.iter().all(|arg| {
@@ -512,7 +512,7 @@ where
     pub fn unset(&mut self, s: AS) { self.settings.unset(s) }
 
     #[cfg_attr(feature = "lints", allow(block_in_if_condition_stmt))]
-    pub fn verify_positionals(&mut self) -> bool {
+    pub fn verify_positionals(&self) -> bool {
         // Because you must wait until all arguments have been supplied, this is the first chance
         // to make assertions on positional argument indexes
         //
@@ -871,6 +871,7 @@ where
         let mut subcmd_name: Option<String> = None;
         let mut needs_val_of: ParseResult<'a> = ParseResult::NotFound;
         let mut pos_counter = 1;
+        let mut sc_is_external = false;
         while let Some(arg) = it.next() {
             let arg_os = arg.into();
             debugln!(
@@ -1115,6 +1116,7 @@ where
                     name: sc_name,
                     matches: sc_m.into(),
                 });
+                sc_is_external = true;
             } else if !((self.is_set(AS::AllowLeadingHyphen)
                 || self.is_set(AS::AllowNegativeNumbers))
                 && arg_os.starts_with(b"-"))
@@ -1154,32 +1156,34 @@ where
             }
         }
 
-        if let Some(ref pos_sc_name) = subcmd_name {
-            let sc_name = {
-                find_subcmd!(self, pos_sc_name)
-                    .expect(INTERNAL_ERROR_MSG)
-                    .p
-                    .meta
-                    .name
-                    .clone()
-            };
-            self.parse_subcommand(&*sc_name, matcher, it)?;
-        } else if self.is_set(AS::SubcommandRequired) {
-            let bn = self.meta.bin_name.as_ref().unwrap_or(&self.meta.name);
-            return Err(Error::missing_subcommand(
-                bn,
-                &usage::create_error_usage(self, matcher, None),
-                self.color(),
-            ));
-        } else if self.is_set(AS::SubcommandRequiredElseHelp) {
-            debugln!("Parser::get_matches_with: SubcommandRequiredElseHelp=true");
-            let mut out = vec![];
-            self.write_help_err(&mut out)?;
-            return Err(Error {
-                message: String::from_utf8_lossy(&*out).into_owned(),
-                kind: ErrorKind::MissingArgumentOrSubcommand,
-                info: None,
-            });
+        if !sc_is_external {
+            if let Some(ref pos_sc_name) = subcmd_name {
+                let sc_name = {
+                    find_subcmd!(self, pos_sc_name)
+                        .expect(INTERNAL_ERROR_MSG)
+                        .p
+                        .meta
+                        .name
+                        .clone()
+                };
+                self.parse_subcommand(&*sc_name, matcher, it)?;
+            } else if self.is_set(AS::SubcommandRequired) {
+                let bn = self.meta.bin_name.as_ref().unwrap_or(&self.meta.name);
+                return Err(Error::missing_subcommand(
+                    bn,
+                    &usage::create_error_usage(self, matcher, None),
+                    self.color(),
+                ));
+            } else if self.is_set(AS::SubcommandRequiredElseHelp) {
+                debugln!("Parser::get_matches_with: SubcommandRequiredElseHelp=true");
+                let mut out = vec![];
+                self.write_help_err(&mut out)?;
+                return Err(Error {
+                    message: String::from_utf8_lossy(&*out).into_owned(),
+                    kind: ErrorKind::MissingArgumentOrSubcommand,
+                    info: None,
+                });
+            }
         }
 
         // In case the last arg was new, we  need to process it's overrides
@@ -1362,6 +1366,8 @@ where
     }
 
     pub fn args_in_group(&self, group: &str) -> Vec<String> {
+        debug_assert!(self.app_debug_asserts());
+
         let mut g_vec = vec![];
         let mut args = vec![];
 
@@ -1413,7 +1419,7 @@ where
     pub fn create_help_and_version(&mut self) {
         debugln!("Parser::create_help_and_version;");
         // name is "hclap_help" because flags are sorted by name
-        if !self.contains_long("help") {
+        if !self.is_set(AS::DisableHelpFlags) && !self.contains_long("help") {
             debugln!("Parser::create_help_and_version: Building --help");
             if self.help_short.is_none() && !self.contains_short('h') {
                 self.help_short = Some('h');

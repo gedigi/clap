@@ -149,8 +149,8 @@ impl<'a, 'b> App<'a, 'b> {
     /// # }
     /// ```
     /// [`App`]: ./struct.App.html
-    /// [`examples/17_yaml.rs`]: https://github.com/kbknapp/clap-rs/blob/master/examples/17_yaml.rs
-    /// [`examples/17_yaml.yml`]: https://github.com/kbknapp/clap-rs/blob/master/examples/17_yaml.yml
+    /// [`examples/17_yaml.rs`]: https://github.com/clap-rs/clap/blob/master/examples/17_yaml.rs
+    /// [`examples/17_yaml.yml`]: https://github.com/clap-rs/clap/blob/master/examples/17_yaml.yml
     /// [`panic!`]: https://doc.rust-lang.org/std/macro.panic!.html
     #[cfg(feature = "yaml")]
     pub fn from_yaml(yaml: &'a Yaml) -> App<'a, 'a> { App::from(yaml) }
@@ -174,7 +174,7 @@ impl<'a, 'b> App<'a, 'b> {
     /// # ;
     /// ```
     /// [`crate_authors!`]: ./macro.crate_authors!.html
-    /// [`examples/`]: https://github.com/kbknapp/clap-rs/tree/master/examples
+    /// [`examples/`]: https://github.com/clap-rs/clap/tree/master/examples
     pub fn author<S: Into<&'b str>>(mut self, author: S) -> Self {
         self.p.meta.author = Some(author.into());
         self
@@ -332,7 +332,7 @@ impl<'a, 'b> App<'a, 'b> {
     /// # ;
     /// ```
     /// [`crate_version!`]: ./macro.crate_version!.html
-    /// [`examples/`]: https://github.com/kbknapp/clap-rs/tree/master/examples
+    /// [`examples/`]: https://github.com/clap-rs/clap/tree/master/examples
     /// [`App::long_version`]: ./struct.App.html#method.long_version
     pub fn version<S: Into<&'b str>>(mut self, ver: S) -> Self {
         self.p.meta.version = Some(ver.into());
@@ -363,7 +363,7 @@ impl<'a, 'b> App<'a, 'b> {
     /// # ;
     /// ```
     /// [`crate_version!`]: ./macro.crate_version!.html
-    /// [`examples/`]: https://github.com/kbknapp/clap-rs/tree/master/examples
+    /// [`examples/`]: https://github.com/clap-rs/clap/tree/master/examples
     /// [`App::version`]: ./struct.App.html#method.version
     pub fn long_version<S: Into<&'b str>>(mut self, ver: S) -> Self {
         self.p.meta.long_version = Some(ver.into());
@@ -560,8 +560,9 @@ impl<'a, 'b> App<'a, 'b> {
     ///     .template("{bin} ({version}) - {usage}")
     /// # ;
     /// ```
-    /// **NOTE:**The template system is, on purpose, very simple. Therefore the tags have to written
-    /// in the lowercase and without spacing.
+    /// **NOTE:** The template system is, on purpose, very simple. Therefore the tags have to be
+    /// written in lowercase and without spacing.
+    ///
     /// [`App::about`]: ./struct.App.html#method.about
     /// [`App::after_help`]: ./struct.App.html#method.after_help
     /// [`App::before_help`]: ./struct.App.html#method.before_help
@@ -1215,7 +1216,7 @@ impl<'a, 'b> App<'a, 'b> {
     /// [`--help` (long)]: ./struct.Arg.html#method.long_help
     pub fn write_help<W: Write>(&self, w: &mut W) -> ClapResult<()> {
         // PENDING ISSUE: 808
-        //      https://github.com/kbknapp/clap-rs/issues/808
+        //      https://github.com/clap-rs/clap/issues/808
         // If there are global arguments, or settings we need to propagate them down to subcommands
         // before parsing incase we run into a subcommand
         // self.p.propagate_globals();
